@@ -8,21 +8,30 @@
     <script src="https://cdn.jsdelivr.net/npm/page-flip/dist/js/page-flip.browser.js"></script>
     <style>
         body { margin: 0; background: #2f3136; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
-        #book { width: 90vw; height: 90vh; }
-        .page { background-size: contain; background-repeat: no-repeat; background-position: center; background-color: white; }
+        #book { width: 90vw; height: 90vh; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        .page { background-color: white; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        .page canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
     </style>
 </head>
 <body>
     <div id="book"></div>
 
     <script>
-        // Points directly to your uploaded PDF filename (with URL encoding for spaces)
         const url = 'Usul%20elfiqh.pdf';
-
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
-        pdfjsLib.getDocument(url).promise.then(pdf => {
+        pdfjsLib.getDocument(url).promise.then(async pdf => {
             const bookContainer = document.getElementById('book');
+            
+            let pageDivs = [];
+            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                const div = document.createElement('div');
+                div.className = 'page';
+                const canvas = document.createElement('canvas');
+                div.appendChild(canvas);
+                pageDivs.push(div);
+            }
+
             const pageFlip = new St.PageFlip(bookContainer, {
                 width: 550,
                 height: 733,
@@ -36,30 +45,19 @@
                 mobileScrollSupport: false
             });
 
-            let renderPromises = [];
+            pageFlip.loadFromHTML(pageDivs);
 
             for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                renderPromises.push(
-                    pdf.getPage(pageNum).then(page => {
-                        const viewport = page.getViewport({ scale: 2 });
-                        const canvas = document.createElement('canvas');
-                        const context = canvas.getContext('2d');
-                        canvas.height = viewport.height;
-                        canvas.width = viewport.width;
+                const page = await pdf.getPage(pageNum);
+                const canvas = pageDivs[pageNum - 1].querySelector('canvas');
+                const context = canvas.getContext('2d');
+                const viewport = page.getViewport({ scale: 1.5 });
+                
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
 
-                        return page.render({ canvasContext: context, viewport: viewport }).promise.then(() => {
-                            const div = document.createElement('div');
-                            div.className = 'page';
-                            div.style.backgroundImage = `url(${canvas.toDataURL()})`;
-                            return div;
-                        });
-                    })
-                );
+                await page.render({ canvasContext: context, viewport: viewport }).promise;
             }
-
-            Promise.all(renderPromises).then(pageDivs => {
-                pageFlip.loadFromHTML(pageDivs);
-            });
         }).catch(err => {
             console.error("Error loading PDF:", err);
         });
