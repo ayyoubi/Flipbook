@@ -7,25 +7,29 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/page-flip/dist/js/page-flip.browser.js"></script>
     <style>
-        body { margin: 0; background: #2f3136; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
-        #book { width: 90vw; height: 90vh; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        body { margin: 0; background: #2f3136; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; font-family: Arial, sans-serif; color: white; }
+        #book { width: 90vw; height: 90vh; box-shadow: 0 0 20px rgba(0,0,0,0.5); display: none; }
+        #loading { font-size: 1.5rem; text-align: center; }
         .page { background-color: white; display: flex; justify-content: center; align-items: center; overflow: hidden; }
         .page canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
     </style>
 </head>
 <body>
+    <div id="loading">Loading book, please wait...</div>
     <div id="book"></div>
 
     <script>
         const url = 'usul_elfiqh.pdf';
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
+        const loadingDiv = document.getElementById('loading');
+        const bookContainer = document.getElementById('book');
+
         pdfjsLib.getDocument(url).promise.then(async pdf => {
-            const bookContainer = document.getElementById('book');
             let pageDivs = [];
 
-            // 1. Render all PDF pages to canvases FIRST
             for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                loadingDiv.innerText = `Loading page ${pageNum} of ${pdf.numPages}...`;
                 const page = await pdf.getPage(pageNum);
                 const viewport = page.getViewport({ scale: 1.5 });
 
@@ -42,7 +46,9 @@
                 pageDivs.push(div);
             }
 
-            // 2. Initialize PageFlip AFTER canvases are fully rendered and sized
+            loadingDiv.style.display = 'none';
+            bookContainer.style.display = 'block';
+
             const pageFlip = new St.PageFlip(bookContainer, {
                 width: 550,
                 height: 733,
@@ -59,6 +65,8 @@
             pageFlip.loadFromHTML(pageDivs);
 
         }).catch(err => {
+            loadingDiv.style.color = '#ff6b6b';
+            loadingDiv.innerText = "Error loading PDF: " + err.message;
             console.error("Error loading PDF:", err);
         });
     </script>
