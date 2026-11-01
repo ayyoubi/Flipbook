@@ -9,7 +9,7 @@
     <style>
         body { margin: 0; background: #2f3136; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; font-family: Arial, sans-serif; color: white; }
         #book { width: 90vw; height: 90vh; box-shadow: 0 0 20px rgba(0,0,0,0.5); display: none; }
-        #loading { font-size: 1.5rem; text-align: center; }
+        #loading { font-size: 1.2rem; text-align: center; padding: 20px; max-width: 80%; word-break: break-word; }
         .page { background-color: white; display: flex; justify-content: center; align-items: center; overflow: hidden; }
         .page canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
     </style>
@@ -19,7 +19,9 @@
     <div id="book"></div>
 
     <script>
-        const url = 'usul_elfiqh.pdf';
+        // Use the absolute GitHub Pages URL so Discord's iframe proxy finds it correctly
+        const url = 'https://ayyoubi.github.io/Flipbook/usul_elfiqh.pdf';
+        
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
         const loadingDiv = document.getElementById('loading');
