@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Usul elfiqh - Flipbook</title>
+    
+    <!-- Open Graph Meta Tags for Discord & Social Previews -->
+    <meta property="og:title" content="Usul elfiqh - Interactive Flipbook">
+    <meta property="og:description" content="Click to read and flip through the pages directly in your browser.">
+    <meta property="og:image" content="URL_TO_A_PREVIEW_IMAGE_OF_YOUR_BOOK_COVER">
+    <meta property="url" content="https://ayyoubi.github.io/Flipbook/">
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/page-flip/dist/js/page-flip.browser.js"></script>
     <style>
@@ -23,7 +30,8 @@
         const bookContainer = document.getElementById('book');
 
         try {
-            const url = 'usul_elfiqh.pdf';
+            // Absolute URL to bypass Discord sandbox relative-path issues
+            const url = 'https://ayyoubi.github.io/Flipbook/usul_elfiqh.pdf';
             
             // Disable worker if sandbox blocks it, forcing main thread execution
             pdfjsLib.GlobalWorkerOptions.workerSrc = '';
