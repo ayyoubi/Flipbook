@@ -61,9 +61,8 @@
         const bookContainer = document.getElementById('book');
 
         pdfjsLib.getDocument(url).promise.then(async pdf => {
-            let pageDivs = [];
+            let rawPages = [];
             
-            // Loop directly through PDF pages without any blank spacer
             for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
                 loadingDiv.innerText = `Loading page ${pageNum} of ${pdf.numPages}...`;
                 const page = await pdf.getPage(pageNum);
@@ -79,15 +78,17 @@
                 const div = document.createElement('div');
                 div.className = 'page';
                 div.appendChild(canvas);
-                pageDivs.push(div);
+                rawPages.push(div);
             }
+
+            // Keep the front cover (index 0) in place, but reverse the interior pages for Arabic RTL reading flow
+            let pageDivs = [rawPages[0], ...rawPages.slice(1).reverse()];
 
             loadingDiv.style.display = 'none';
             bookContainer.style.display = 'block';
 
             const isMobile = window.innerWidth < 768;
 
-            // Using fixed sizing + cover mode to ensure zero layout jumping during animation
             const pageFlip = new St.PageFlip(bookContainer, {
                 width: 420,
                 height: 594,
