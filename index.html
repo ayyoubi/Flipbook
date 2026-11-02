@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Usul elfiqh - Arabic Flipbook</title>
+    <title>Usul elfiqh - Interactive Flipbook</title>
     
     <!-- Open Graph Meta Tags for Discord Link Previews -->
-    <meta property="og:title" content="Usul elfiqh - Arabic Flipbook">
+    <meta property="og:title" content="Usul elfiqh - Interactive Flipbook">
     <meta property="og:description" content="Click to read and flip through the pages directly in your browser.">
     <meta property="og:url" content="https://ayyoubi.github.io/Flipbook/">
     <meta property="og:image" content="https://ayyoubi.github.io/Flipbook/cover.jpg">
@@ -27,11 +27,8 @@
             color: white; 
         }
         #book { 
-            width: 800px;
-            height: 560px;
             box-shadow: 0 0 25px rgba(0,0,0,0.6); 
             display: none; 
-            direction: rtl; /* Sets text and drag interaction flow to Right-to-Left */
         }
         #loading { 
             font-size: 1.2rem; 
@@ -53,7 +50,7 @@
     </style>
 </head>
 <body>
-    <div id="loading">Preparing Arabic book...</div>
+    <div id="loading">Preparing your book...</div>
     <div id="book"></div>
 
     <script>
@@ -66,7 +63,7 @@
         pdfjsLib.getDocument(url).promise.then(async pdf => {
             let pageDivs = [];
             
-            // Render PDF pages in exact order (Page 1 = Cover, Page 2 = Inside Right, Page 3 = Inside Left, etc.)
+            // Loop directly through PDF pages without any blank spacer
             for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
                 loadingDiv.innerText = `Loading page ${pageNum} of ${pdf.numPages}...`;
                 const page = await pdf.getPage(pageNum);
@@ -90,9 +87,10 @@
 
             const isMobile = window.innerWidth < 768;
 
+            // Using fixed sizing + cover mode to ensure zero layout jumping during animation
             const pageFlip = new St.PageFlip(bookContainer, {
-                width: 400,
-                height: 560,
+                width: 420,
+                height: 594,
                 size: "fixed",
                 minWidth: 250,
                 maxWidth: 700,
@@ -101,16 +99,10 @@
                 maxShadowOpacity: 0.4,
                 showCover: true,
                 usePortrait: isMobile,
-                mobileScrollSupport: true,
-                startPage: 0
+                mobileScrollSupport: true
             });
 
             pageFlip.loadFromHTML(pageDivs);
-
-            // Reverses click-corner hotspots so clicking or dragging the top/bottom right corner lifts and flips the page to the left
-            pageFlip.on('flip', (e) => {
-                console.log('Flipped to page: ', e.data);
-            });
 
         }).catch(err => {
             loadingDiv.style.color = '#ff6b6b';
