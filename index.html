@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Usul elfiqh - Interactive Flipbook</title>
     
+    <!-- Open Graph Meta Tags for Discord Link Previews -->
     <meta property="og:title" content="Usul elfiqh - Interactive Flipbook">
     <meta property="og:description" content="Click to read and flip through the pages directly in your browser.">
     <meta property="og:url" content="https://ayyoubi.github.io/Flipbook/">
@@ -26,7 +27,6 @@
     <div id="book"></div>
 
     <script>
-        // Point worker explicitly to the local worker file
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
 
         const url = 'usul_elfiqh.pdf';
@@ -57,6 +57,7 @@
             loadingDiv.style.display = 'none';
             bookContainer.style.display = 'block';
 
+            // Initialize the page-flip effect with corrected spread options
             const pageFlip = new St.PageFlip(bookContainer, {
                 width: 550,
                 height: 733,
@@ -67,6 +68,7 @@
                 maxHeight: 1350,
                 maxShadowOpacity: 0.5,
                 showCover: true,
+                usePortrait: false, // Forces consistent dual-page spread calculations to eliminate the gap shift
                 mobileScrollSupport: false
             });
 
