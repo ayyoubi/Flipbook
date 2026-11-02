@@ -5,13 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Usul elfiqh - Interactive Flipbook</title>
     
-    <!-- Open Graph Meta Tags for Discord Link Previews -->
     <meta property="og:title" content="Usul elfiqh - Interactive Flipbook">
     <meta property="og:description" content="Click to read and flip through the pages directly in your browser.">
     <meta property="og:url" content="https://ayyoubi.github.io/Flipbook/">
     <meta property="og:image" content="https://ayyoubi.github.io/Flipbook/cover.jpg">
 
-    <!-- Load script libraries locally from your repository to bypass Discord CDN blocking -->
     <script src="pdf.min.js"></script>
     <script src="page-flip.browser.js"></script>
 
@@ -28,8 +26,8 @@
     <div id="book"></div>
 
     <script>
-        // Disable external worker so it runs directly on the main thread (bypassing sandbox blocks)
-        pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+        // Point worker explicitly to the local worker file
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
 
         const url = 'usul_elfiqh.pdf';
         const loadingDiv = document.getElementById('loading');
@@ -59,7 +57,6 @@
             loadingDiv.style.display = 'none';
             bookContainer.style.display = 'block';
 
-            // Initialize the page-flip effect
             const pageFlip = new St.PageFlip(bookContainer, {
                 width: 550,
                 height: 733,
