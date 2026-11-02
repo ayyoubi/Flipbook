@@ -29,7 +29,6 @@
         #book { 
             box-shadow: 0 15px 40px rgba(0,0,0,0.8); 
             display: none; 
-            background: #dcdcdc; /* Clean grey spine/crease background color */
         }
         #loading { 
             font-size: 1.2rem; 
@@ -42,6 +41,9 @@
             justify-content: center; 
             align-items: center; 
             overflow: hidden; 
+            /* Realistic inner page curve and center gutter crease shadow */
+            box-shadow: inset 15px 0 15px -10px rgba(0,0,0,0.12), 
+                        inset -15px 0 15px -10px rgba(0,0,0,0.12);
         }
         .page canvas { 
             max-width: 100%; 
