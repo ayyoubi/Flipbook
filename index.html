@@ -11,10 +11,8 @@
     <meta property="og:url" content="https://ayyoubi.github.io/Flipbook/">
     <meta property="og:image" content="https://ayyoubi.github.io/Flipbook/cover.jpg">
 
-    <!-- Local Libraries to comply with Discord CSP -->
-    <script src="jquery.min.js"></script>
     <script src="pdf.min.js"></script>
-    <script src="turn.min.js"></script>
+    <script src="page-flip.browser.js"></script>
 
     <style>
         body { 
@@ -29,10 +27,11 @@
             color: white; 
         }
         #book { 
-            width: 840px;
-            height: 594px;
+            width: 800px;
+            height: 560px;
             box-shadow: 0 0 25px rgba(0,0,0,0.6); 
             display: none; 
+            direction: rtl; /* Sets text and drag interaction flow to Right-to-Left */
         }
         #loading { 
             font-size: 1.2rem; 
@@ -47,8 +46,8 @@
             overflow: hidden; 
         }
         .page canvas { 
-            width: 100%; 
-            height: 100%; 
+            max-width: 100%; 
+            max-height: 100%; 
             object-fit: contain; 
         }
     </style>
@@ -65,11 +64,13 @@
         const bookContainer = document.getElementById('book');
 
         pdfjsLib.getDocument(url).promise.then(async pdf => {
-            // Render all PDF pages into sequential div elements
+            let pageDivs = [];
+            
+            // Render PDF pages in exact order (Page 1 = Cover, Page 2 = Inside Right, Page 3 = Inside Left, etc.)
             for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
                 loadingDiv.innerText = `Loading page ${pageNum} of ${pdf.numPages}...`;
                 const page = await pdf.getPage(pageNum);
-                const viewport = page.getViewport({ scale: 1.2 });
+                const viewport = page.getViewport({ scale: 1.1 });
 
                 const canvas = document.createElement('canvas');
                 canvas.height = viewport.height;
@@ -81,21 +82,34 @@
                 const div = document.createElement('div');
                 div.className = 'page';
                 div.appendChild(canvas);
-                bookContainer.appendChild(div);
+                pageDivs.push(div);
             }
 
             loadingDiv.style.display = 'none';
             bookContainer.style.display = 'block';
 
-            // Initialize Turn.js with native RTL direction support
-            $(bookContainer).turn({
-                width: 840,
-                height: 594,
-                autoCenter: true,
-                direction: 'rtl', // Native Right-to-Left opening and page animation
-                elevation: 50,
-                gradients: true,
-                display: 'double'
+            const isMobile = window.innerWidth < 768;
+
+            const pageFlip = new St.PageFlip(bookContainer, {
+                width: 400,
+                height: 560,
+                size: "fixed",
+                minWidth: 250,
+                maxWidth: 700,
+                minHeight: 350,
+                maxHeight: 900,
+                maxShadowOpacity: 0.4,
+                showCover: true,
+                usePortrait: isMobile,
+                mobileScrollSupport: true,
+                startPage: 0
+            });
+
+            pageFlip.loadFromHTML(pageDivs);
+
+            // Reverses click-corner hotspots so clicking or dragging the top/bottom right corner lifts and flips the page to the left
+            pageFlip.on('flip', (e) => {
+                console.log('Flipped to page: ', e.data);
             });
 
         }).catch(err => {
