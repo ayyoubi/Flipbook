@@ -57,18 +57,18 @@
             loadingDiv.style.display = 'none';
             bookContainer.style.display = 'block';
 
-            // Initialize the page-flip effect with corrected spread options
+            // Initializing with fixed sizing and disabled standalone cover mode to eliminate gaps
             const pageFlip = new St.PageFlip(bookContainer, {
                 width: 550,
                 height: 733,
-                size: "stretch",
+                size: "fixed",
                 minWidth: 315,
                 maxWidth: 1000,
                 minHeight: 420,
                 maxHeight: 1350,
-                maxShadowOpacity: 0.5,
-                showCover: true,
-                usePortrait: false, // Forces consistent dual-page spread calculations to eliminate the gap shift
+                maxShadowOpacity: 0.2,
+                showCover: false,
+                usePortrait: false,
                 mobileScrollSupport: false
             });
 
