@@ -11,9 +11,9 @@
     <meta property="og:url" content="https://ayyoubi.github.io/Flipbook/">
     <meta property="og:image" content="https://ayyoubi.github.io/Flipbook/cover.jpg">
 
-    <!-- Load older, stable PDF.js and PageFlip library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.6.347/pdf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/page-flip/dist/js/page-flip.browser.js"></script>
+    <!-- Load script libraries locally from your repository to bypass Discord CDN blocking -->
+    <script src="pdf.min.js"></script>
+    <script src="page-flip.browser.js"></script>
 
     <style>
         body { margin: 0; background: #2f3136; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; font-family: Arial, sans-serif; color: white; }
@@ -31,7 +31,7 @@
         // Disable external worker so it runs directly on the main thread (bypassing sandbox blocks)
         pdfjsLib.GlobalWorkerOptions.workerSrc = '';
 
-        const url = 'https://ayyoubi.github.io/Flipbook/usul_elfiqh.pdf';
+        const url = 'usul_elfiqh.pdf';
         const loadingDiv = document.getElementById('loading');
         const bookContainer = document.getElementById('book');
 
