@@ -27,7 +27,7 @@
             color: white; 
         }
         #book { 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.85); 
+            box-shadow: 0 0 25px rgba(0,0,0,0.6); 
             display: none; 
         }
         #loading { 
@@ -63,6 +63,7 @@
         pdfjsLib.getDocument(url).promise.then(async pdf => {
             let pageDivs = [];
             
+            // Loop directly through PDF pages without any blank spacer
             for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
                 loadingDiv.innerText = `Loading page ${pageNum} of ${pdf.numPages}...`;
                 const page = await pdf.getPage(pageNum);
@@ -86,6 +87,7 @@
 
             const isMobile = window.innerWidth < 768;
 
+            // Using fixed sizing + cover mode to ensure zero layout jumping during animation
             const pageFlip = new St.PageFlip(bookContainer, {
                 width: 420,
                 height: 594,
@@ -94,7 +96,7 @@
                 maxWidth: 700,
                 minHeight: 350,
                 maxHeight: 900,
-                maxShadowOpacity: 0.9, // Cranked up for deep, high-contrast page turn shadows
+                maxShadowOpacity: 0.4,
                 showCover: true,
                 usePortrait: isMobile,
                 mobileScrollSupport: true
