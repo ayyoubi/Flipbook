@@ -81,8 +81,24 @@
                 rawPages.push(div);
             }
 
-            // Keep the front cover (index 0) in place, but reverse the interior pages for Arabic RTL reading flow
-            let pageDivs = [rawPages[0], ...rawPages.slice(1).reverse()];
+            // Keep the front cover (index 0) intact, then pair interior pages for Arabic RTL reading flow
+            let pageDivs = [rawPages[0]];
+            let interiorPages = rawPages.slice(1);
+
+            // If interior page count is odd, add a blank padding page at the end
+            if (interiorPages.length % 2 !== 0) {
+                const blankDiv = document.createElement('div');
+                blankDiv.className = 'page';
+                interiorPages.push(blankDiv);
+            }
+
+            // Swap pairs so Page 1 lands on the right and Page 2 on the left
+            for (let i = 0; i < interiorPages.length; i += 2) {
+                let rightPage = interiorPages[i];     // e.g. Page 1
+                let leftPage = interiorPages[i+1];   // e.g. Page 2
+                pageDivs.push(leftPage);  // Placed on left side of spread
+                pageDivs.push(rightPage); // Placed on right side of spread
+            }
 
             loadingDiv.style.display = 'none';
             bookContainer.style.display = 'block';
