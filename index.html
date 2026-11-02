@@ -27,10 +27,10 @@
             color: white; 
         }
         #book { 
-            width: 100vw;
-            height: 85vh;
-            max-width: 950px;
-            max-height: 680px;
+            width: 75vw;
+            height: 80vh;
+            max-width: 800px;
+            max-height: 600px;
             box-shadow: 0 0 25px rgba(0,0,0,0.6); 
             display: none; 
         }
@@ -75,7 +75,8 @@
             for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
                 loadingDiv.innerText = `Loading page ${pageNum} of ${pdf.numPages}...`;
                 const page = await pdf.getPage(pageNum);
-                const viewport = page.getViewport({ scale: 1.2 });
+                // Scale 1.0 keeps resolution sharp without over-bloating the canvas size
+                const viewport = page.getViewport({ scale: 1.0 });
 
                 const canvas = document.createElement('canvas');
                 canvas.height = viewport.height;
@@ -95,15 +96,14 @@
 
             const isMobile = window.innerWidth < 768;
 
-            // Using "fit" mode so it scales cleanly within container bounds without manual zoom
             const pageFlip = new St.PageFlip(bookContainer, {
                 width: 400,
                 height: 560,
-                size: "fit", 
+                size: "stretch",
                 minWidth: 250,
-                maxWidth: 600,
+                maxWidth: 700,
                 minHeight: 350,
-                maxHeight: 800,
+                maxHeight: 900,
                 maxShadowOpacity: 0.4,
                 showCover: true,
                 usePortrait: isMobile,
