@@ -61,8 +61,9 @@
         const bookContainer = document.getElementById('book');
 
         pdfjsLib.getDocument(url).promise.then(async pdf => {
-            let rawPages = [];
+            let pageDivs = [];
             
+            // Load pages in direct sequential order (Cover = index 0, Page 1 = index 1, Page 2 = index 2...)
             for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
                 loadingDiv.innerText = `Loading page ${pageNum} of ${pdf.numPages}...`;
                 const page = await pdf.getPage(pageNum);
@@ -78,26 +79,7 @@
                 const div = document.createElement('div');
                 div.className = 'page';
                 div.appendChild(canvas);
-                rawPages.push(div);
-            }
-
-            // Keep the front cover (index 0) intact, then pair interior pages for Arabic RTL reading flow
-            let pageDivs = [rawPages[0]];
-            let interiorPages = rawPages.slice(1);
-
-            // If interior page count is odd, add a blank padding page at the end
-            if (interiorPages.length % 2 !== 0) {
-                const blankDiv = document.createElement('div');
-                blankDiv.className = 'page';
-                interiorPages.push(blankDiv);
-            }
-
-            // Swap pairs so Page 1 lands on the right and Page 2 on the left
-            for (let i = 0; i < interiorPages.length; i += 2) {
-                let rightPage = interiorPages[i];     // e.g. Page 1
-                let leftPage = interiorPages[i+1];   // e.g. Page 2
-                pageDivs.push(leftPage);  // Placed on left side of spread
-                pageDivs.push(rightPage); // Placed on right side of spread
+                pageDivs.push(div);
             }
 
             loadingDiv.style.display = 'none';
