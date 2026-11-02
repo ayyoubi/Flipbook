@@ -49,25 +49,25 @@
             object-fit: contain; 
         }
 
-        /* Center Crease Shadow Overlay */
-        #book::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 30px;
-            background: linear-gradient(to right, rgba(0,0,0,0.05), rgba(0,0,0,0.22) 50%, rgba(0,0,0,0.05));
-            pointer-events: none;
-            z-index: 999;
-            opacity: 1;
-            transition: opacity 0.15s ease-in-out;
-        }
-
-        /* Hides the crease overlay completely while pages are turning */
-        #book.is-flipping::after {
-            opacity: 0;
+        /* Center Crease Shadow - DESKTOP ONLY */
+        @media (min-width: 768px) {
+            #book::after {
+                content: "";
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 30px;
+                background: linear-gradient(to right, rgba(0,0,0,0.05), rgba(0,0,0,0.22) 50%, rgba(0,0,0,0.05));
+                pointer-events: none;
+                z-index: 999;
+                opacity: 1;
+                transition: opacity 0.15s ease-in-out;
+            }
+            #book.is-flipping::after {
+                opacity: 0;
+            }
         }
     </style>
 </head>
@@ -116,7 +116,7 @@
                 maxWidth: 700,
                 minHeight: 350,
                 maxHeight: 900,
-                maxShadowOpacity: 0.4, // Restored back to standard page flip shadow opacity
+                maxShadowOpacity: 0.4,
                 showCover: true,
                 usePortrait: isMobile,
                 mobileScrollSupport: true
@@ -124,7 +124,7 @@
 
             pageFlip.loadFromHTML(pageDivs);
 
-            // Listen for engine state changes to hide/show the crease during active animations
+            // Listen for engine state changes to hide/show the crease during active desktop animations
             pageFlip.on('changeState', (e) => {
                 if (e.data === 'flipping' || e.data === 'user_fold') {
                     bookContainer.classList.add('is-flipping');
