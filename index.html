@@ -48,17 +48,17 @@
             max-height: 100%; 
             object-fit: contain; 
         }
-        /* Permanent, realistic center spine crease overlay */
+        /* Center spine crease placed BEHIND the pages (z-index: 0) */
         .book-spine {
             position: absolute;
             top: 0;
             bottom: 0;
             left: 50%;
             transform: translateX(-50%);
-            width: 35px;
-            background: linear-gradient(to right, rgba(0,0,0,0.06), rgba(0,0,0,0.25) 50%, rgba(0,0,0,0.06));
+            width: 40px;
+            background: linear-gradient(to right, rgba(0,0,0,0.1), rgba(0,0,0,0.35) 50%, rgba(0,0,0,0.1));
             pointer-events: none;
-            z-index: 100;
+            z-index: 0; 
         }
     </style>
 </head>
@@ -115,7 +115,7 @@
 
             pageFlip.loadFromHTML(pageDivs);
 
-            // Injects a permanent, fixed center crease right down the middle fold of every spread
+            // Injects the center crease behind the pages
             const spine = document.createElement('div');
             spine.className = 'book-spine';
             bookContainer.appendChild(spine);
