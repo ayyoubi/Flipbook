@@ -1,212 +1,226 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Usul elfiqh - Interactive Flipbook</title>
-
-    <!-- Discord Preview -->
-    <meta property="og:title" content="Usul elfiqh - Interactive Flipbook">
-    <meta property="og:description" content="Click to read and flip through the pages directly in your browser.">
-    <meta property="og:url" content="https://ayyoubi.github.io/Flipbook/">
-    <meta property="og:image" content="https://ayyoubi.github.io/Flipbook/cover.jpg">
-
-    <script src="pdf.min.js"></script>
-    <script src="page-flip.browser.js"></script>
-
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            background: #2f3136;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow: hidden;
-            font-family: Arial, sans-serif;
-            color: white;
-        }
-
-        #book {
-            box-shadow: 0 0 25px rgba(0,0,0,0.6);
-            display: none;
-            direction: ltr;
-        }
-
-        #loading {
-            font-size: 1.2rem;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .page {
-            background-color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-        }
-
-        .page canvas {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Usul elfiqh - Interactive Flipbook</title>
+<meta property="og:title" content="Usul elfiqh - Interactive Flipbook">
+<meta property="og:description" content="Interactive Arabic flipbook">
+<meta property="og:url" content="https://ayyoubi.github.io/Flipbook/">
+<meta property="og:image" content="https://ayyoubi.github.io/Flipbook/cover.jpg">
+<script src="pdf.min.js"></script>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body { margin:0; width:100%; min-height:100%; }
+body {
+  min-height:100vh; min-height:100dvh; overflow:hidden;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:14px; padding:12px; background:#292b30; color:#f5f5f5;
+  font-family:Arial,sans-serif; touch-action:pan-y;
+}
+#loading { text-align:center; padding:24px; font-size:1rem; }
+#book {
+  position:relative; width:min(96vw, 1120px); height:min(84vh, 68vw, 790px);
+  height:min(84dvh, 68vw, 790px); aspect-ratio:1.414 / 1;
+  perspective:2200px; direction:ltr; display:none;
+  filter:drop-shadow(0 12px 22px rgba(0,0,0,.42)); user-select:none;
+  -webkit-user-select:none; touch-action:pan-y;
+}
+#left-under, #right-under {
+  position:absolute; top:0; width:50%; height:100%; overflow:hidden;
+  background:#fff; backface-visibility:hidden;
+}
+#left-under { left:0; }
+#right-under { right:0; }
+.sheet {
+  position:absolute; top:0; right:0; width:50%; height:100%;
+  transform-origin:left center; transform-style:preserve-3d;
+  transition:transform 780ms cubic-bezier(.22,.68,0,1);
+  will-change:transform; cursor:grab;
+}
+.sheet.turning { transition:none; }
+.sheet.dragging { cursor:grabbing; }
+.face {
+  position:absolute; inset:0; overflow:hidden; background:#fff;
+  backface-visibility:hidden; -webkit-backface-visibility:hidden;
+}
+.face.front { transform:rotateY(0deg); }
+.face.back { transform:rotateY(180deg); }
+.face canvas { display:block; width:100%; height:100%; object-fit:fill; }
+#left-under canvas, #right-under canvas { width:100%; height:100%; object-fit:fill; display:block; }
+#controls { display:flex; align-items:center; justify-content:center; gap:14px; }
+#controls button {
+  border:1px solid #777; border-radius:9px; background:#41444b; color:white;
+  padding:9px 17px; font-size:15px; cursor:pointer;
+}
+#controls button:disabled { opacity:.35; cursor:default; }
+#counter { min-width:100px; text-align:center; color:#ddd; font-size:14px; }
+#hint { color:#bbb; font-size:12px; text-align:center; }
+@media (max-width:600px) {
+ body { gap:10px; padding:8px; }
+ #book { width:96vw; height:min(76dvh, 68vw); }
+ #controls button { padding:8px 14px; }
+}
+</style>
 </head>
-
 <body>
+<div id="loading">Preparing your book…</div>
+<div id="book" aria-label="Arabic flipbook">
+  <div id="left-under"></div>
+  <div id="right-under"></div>
+</div>
+<div id="controls" style="display:none">
+  <button id="prev" type="button">السابق</button>
+  <span id="counter"></span>
+  <button id="next" type="button">التالي</button>
+</div>
+<div id="hint" style="display:none">اسحب الصفحة اليمنى إلى اليسار للتقدم، واليسرى إلى اليمين للرجوع</div>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
+const PDF_URL = 'usul_elfiqh.pdf';
+const loading = document.getElementById('loading');
+const book = document.getElementById('book');
+const leftUnder = document.getElementById('left-under');
+const rightUnder = document.getElementById('right-under');
+const prevButton = document.getElementById('prev');
+const nextButton = document.getElementById('next');
+const counter = document.getElementById('counter');
+let sheets = [];
+let current = 0; // 0 is the front cover; each following sheet is one page turn.
+let pointerStart = null;
+let animating = false;
+let pageCount = 0;
 
-    <div id="loading">Preparing your book...</div>
-    <div id="book"></div>
+function makePageCanvas(source) {
+  const c = document.createElement('canvas');
+  if (source) {
+    c.width = source.width; c.height = source.height;
+    c.getContext('2d').drawImage(source, 0, 0);
+  } else { c.width = 900; c.height = 1273; }
+  return c;
+}
+function makeFace(canvas, cls) {
+  const face = document.createElement('div');
+  face.className = 'face ' + cls;
+  face.appendChild(canvas);
+  return face;
+}
+function setUnder(container, canvas) {
+  container.replaceChildren();
+  if (canvas) container.appendChild(makePageCanvas(canvas));
+}
+function updateStack() {
+  // The last turned leaf supplies the visible left-hand page.
+  setUnder(leftUnder, current > 0 ? sheets[current - 1].backCanvas : null);
+  // The next unturned leaf is visible beneath the current leaf on the right.
+  setUnder(rightUnder, current + 1 < sheets.length ? sheets[current + 1].frontCanvas : null);
+  sheets.forEach((s, i) => {
+    if (i < current) {
+      s.el.style.transform = 'rotateY(-180deg)';
+      s.el.style.zIndex = String(100 + i);
+      s.el.style.pointerEvents = 'none';
+    } else if (i === current) {
+      s.el.style.transform = 'rotateY(0deg)';
+      s.el.style.zIndex = '1000';
+      s.el.style.pointerEvents = 'auto';
+    } else {
+      s.el.style.transform = 'rotateY(0deg)';
+      s.el.style.zIndex = String(500 - i);
+      s.el.style.pointerEvents = 'none';
+    }
+  });
+  // Under-pages must sit behind the active leaf.
+  leftUnder.style.zIndex = '1';
+  rightUnder.style.zIndex = '2';
+  counter.textContent = current === 0 ? 'الغلاف' : (current + ' / ' + (sheets.length - 1));
+  prevButton.disabled = current === 0 || animating;
+  nextButton.disabled = current >= sheets.length - 1 || animating;
+}
+function turnForward() {
+  if (animating || current >= sheets.length - 1) return;
+  const s = sheets[current];
+  animating = true; s.el.style.pointerEvents = 'none';
+  s.el.style.transition = 'transform 780ms cubic-bezier(.22,.68,0,1)';
+  requestAnimationFrame(() => { s.el.style.transform = 'rotateY(-180deg)'; });
+  window.setTimeout(() => {
+    current++; animating = false; updateStack();
+  }, 800);
+}
+function turnBackward() {
+  if (animating || current <= 0) return;
+  const s = sheets[current - 1];
+  animating = true;
+  s.el.style.pointerEvents = 'auto';
+  s.el.style.transition = 'transform 780ms cubic-bezier(.22,.68,0,1)';
+  requestAnimationFrame(() => { s.el.style.transform = 'rotateY(0deg)'; });
+  window.setTimeout(() => {
+    current--; animating = false; updateStack();
+  }, 800);
+}
+prevButton.addEventListener('click', turnBackward);
+nextButton.addEventListener('click', turnForward);
 
-    <script>
+book.addEventListener('pointerdown', e => {
+  if (animating || e.button > 0) return;
+  const r = book.getBoundingClientRect();
+  pointerStart = { x:e.clientX, y:e.clientY, side:e.clientX >= r.left + r.width/2 ? 'right' : 'left', id:e.pointerId };
+  if (book.setPointerCapture) book.setPointerCapture(e.pointerId);
+});
+book.addEventListener('pointerup', e => {
+  if (!pointerStart || pointerStart.id !== e.pointerId) return;
+  const dx = e.clientX - pointerStart.x;
+  const dy = e.clientY - pointerStart.y;
+  const side = pointerStart.side;
+  pointerStart = null;
+  if (Math.abs(dx) > 28 && Math.abs(dx) > Math.abs(dy) * 1.15) {
+    if (side === 'right' && dx < 0) turnForward();
+    else if (side === 'left' && dx > 0) turnBackward();
+  } else if (Math.abs(dx) < 12 && Math.abs(dy) < 12) {
+    if (side === 'right') turnForward(); else turnBackward();
+  }
+});
+book.addEventListener('pointercancel', () => { pointerStart = null; });
+book.addEventListener('dragstart', e => e.preventDefault());
 
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
-
-        const url = 'usul_elfiqh.pdf';
-
-        const loadingDiv = document.getElementById('loading');
-        const bookContainer = document.getElementById('book');
-
-        pdfjsLib.getDocument(url).promise.then(async pdf => {
-
-            let rawPages = [];
-
-            // Render PDF pages
-            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-
-                loadingDiv.innerText =
-                    `Loading page ${pageNum} of ${pdf.numPages}...`;
-
-                const page = await pdf.getPage(pageNum);
-
-                const viewport = page.getViewport({ scale: 1.1 });
-
-                const canvas = document.createElement('canvas');
-
-                canvas.height = viewport.height;
-                canvas.width = viewport.width;
-
-                const context = canvas.getContext('2d');
-
-                await page.render({
-                    canvasContext: context,
-                    viewport: viewport
-                }).promise;
-
-                const div = document.createElement('div');
-
-                div.className = 'page';
-                div.appendChild(canvas);
-
-                rawPages.push(div);
-            }
-
-            // ==================================
-            // ARABIC RTL PAGE ARRANGEMENT
-            // ==================================
-
-            // First PDF page = Front cover
-            let pageDivs = [rawPages[0]];
-
-            let interiorPages = rawPages.slice(1);
-
-            // Add blank page if necessary
-            if (interiorPages.length % 2 !== 0) {
-
-                const blankDiv = document.createElement('div');
-
-                blankDiv.className = 'page';
-
-                interiorPages.push(blankDiv);
-            }
-
-            // Arrange interior pages
-            for (let i = 0; i < interiorPages.length; i += 2) {
-
-                let rightPage = interiorPages[i];
-                let leftPage = interiorPages[i + 1];
-
-                pageDivs.push(leftPage);
-                pageDivs.push(rightPage);
-            }
-
-            // ==================================
-            // INITIALIZE PAGE FLIP
-            // ==================================
-
-            loadingDiv.style.display = 'none';
-
-            bookContainer.style.display = 'block';
-
-            const isMobile = window.innerWidth < 768;
-
-            const pageFlip = new St.PageFlip(bookContainer, {
-
-                // Stretch responsively so the book fits narrow phone screens.
-                width: 420,
-                height: 594,
-
-                size: "stretch",
-
-                minWidth: 150,
-                maxWidth: 420,
-
-                minHeight: 212,
-                maxHeight: 594,
-
-                autoSize: true,
-
-                maxShadowOpacity: 0.4,
-
-                showCover: true,
-
-                usePortrait: isMobile,
-
-                mobileScrollSupport: true,
-
-                flippingTime: 1000,
-
-                useMouseEvents: true,
-
-                disableFlipByClick: false
-
-            });
-
-            // Load pages
-            pageFlip.loadFromHTML(pageDivs);
-
-            // ==================================
-            // NAVIGATION
-            // ==================================
-
-            // Arabic reading order:
-            // The cover is the first (right-hand) page.
-            // Dragging from the right edge toward the left advances the book.
-
-            pageFlip.on('flip', (e) => {
-                console.log('Current page:', e.data);
-            });
-
-        }).catch(err => {
-
-            loadingDiv.style.color = '#ff6b6b';
-
-            loadingDiv.innerText =
-                "Error loading book: " + err.message;
-
-            console.error(err);
-
-        });
-
-    </script>
-
+async function buildBook(pdf) {
+  const rendered = [];
+  for (let n = 1; n <= pdf.numPages; n++) {
+    loading.textContent = 'Loading page ' + n + ' of ' + pdf.numPages + '…';
+    const page = await pdf.getPage(n);
+    const viewport = page.getViewport({ scale: 1.35 });
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.ceil(viewport.width); canvas.height = Math.ceil(viewport.height);
+    await page.render({ canvasContext:canvas.getContext('2d'), viewport }).promise;
+    rendered.push(canvas);
+  }
+  pageCount = rendered.length;
+  // Each physical leaf has a front (right page) and a reverse (left page).
+  // PDF page 1 is the cover; subsequent pairs are kept in natural Arabic order.
+  const pairs = [{ front:rendered[0], back:null }];
+  for (let i = 1; i < rendered.length; i += 2) {
+    pairs.push({ front:rendered[i], back:rendered[i + 1] || null });
+  }
+  pairs.forEach((pair, index) => {
+    const el = document.createElement('div');
+    el.className = 'sheet';
+    el.appendChild(makeFace(makePageCanvas(pair.front), 'front'));
+    el.appendChild(makeFace(makePageCanvas(pair.back), 'back'));
+    book.appendChild(el);
+    sheets.push({ el, frontCanvas:pair.front, backCanvas:pair.back });
+  });
+  // The visible left page after each turn is the reverse of the leaf just turned.
+  book.style.display = 'block';
+  document.getElementById('controls').style.display = 'flex';
+  document.getElementById('hint').style.display = 'block';
+  loading.style.display = 'none';
+  updateStack();
+}
+pdfjsLib.getDocument(PDF_URL).promise.then(buildBook).catch(err => {
+  loading.textContent = 'Could not load the book: ' + err.message;
+  loading.style.color = '#ff8a8a';
+  console.error(err);
+});
+</script>
 </body>
 </html>
-```
