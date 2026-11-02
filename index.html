@@ -66,7 +66,8 @@
             for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
                 loadingDiv.innerText = `Loading page ${pageNum} of ${pdf.numPages}...`;
                 const page = await pdf.getPage(pageNum);
-                const viewport = page.getViewport({ scale: 1.5 });
+                // Optimized scale for crisp text without giant resolution bloat
+                const viewport = page.getViewport({ scale: 1.2 });
 
                 const canvas = document.createElement('canvas');
                 canvas.height = viewport.height;
@@ -84,21 +85,20 @@
             loadingDiv.style.display = 'none';
             bookContainer.style.display = 'block';
 
-            // Detect if user is on a mobile device or small screen
             const isMobile = window.innerWidth < 768;
 
-            // Initialize PageFlip with true book cover behavior & responsive adaptation
+            // Adjusted base dimensions to fit nicely inside desktop and mobile viewports automatically
             const pageFlip = new St.PageFlip(bookContainer, {
-                width: 550,
-                height: 733,
+                width: 420,
+                height: 594,
                 size: "stretch",
-                minWidth: 280,
-                maxWidth: 1000,
-                minHeight: 400,
-                maxHeight: 1400,
+                minWidth: 250,
+                maxWidth: 800,
+                minHeight: 350,
+                maxHeight: 1100,
                 maxShadowOpacity: 0.4,
-                showCover: true,         // Restores true single-page front/back cover behavior
-                usePortrait: isMobile,   // True for phones (1 page view), False for PC (2 page spread)
+                showCover: true,
+                usePortrait: isMobile,
                 mobileScrollSupport: true
             });
 
