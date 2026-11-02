@@ -61,9 +61,8 @@
         const bookContainer = document.getElementById('book');
 
         pdfjsLib.getDocument(url).promise.then(async pdf => {
-            let pageDivs = [];
+            let rawPages = [];
             
-            // Load pages in direct sequential order (Cover = index 0, Page 1 = index 1, Page 2 = index 2...)
             for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
                 loadingDiv.innerText = `Loading page ${pageNum} of ${pdf.numPages}...`;
                 const page = await pdf.getPage(pageNum);
@@ -79,7 +78,28 @@
                 const div = document.createElement('div');
                 div.className = 'page';
                 div.appendChild(canvas);
-                pageDivs.push(div);
+                rawPages.push(div);
+            }
+
+            // Arabic RTL Page Pairing:
+            // rawPages[0] is the Front Cover (kept at index 0 to sit on the right when closed)
+            let pageDivs = [rawPages[0]];
+            let interiorPages = rawPages.slice(1);
+
+            // Pad with a blank page if interior count is odd
+            if (interiorPages.length % 2 !== 0) {
+                const blankDiv = document.createElement('div');
+                blankDiv.className = 'page';
+                interiorPages.push(blankDiv);
+            }
+
+            // Map interior pages so left slots get even pages and right slots get odd pages,
+            // creating the correct right-to-left animation and reading progression.
+            for (let i = 0; i < interiorPages.length; i += 2) {
+                let rightPage = interiorPages[i];     // Page 1, 3, 5... (placed on right)
+                let leftPage = interiorPages[i+1];   // Page 2, 4, 6... (placed on left)
+                pageDivs.push(leftPage);  
+                pageDivs.push(rightPage); 
             }
 
             loadingDiv.style.display = 'none';
