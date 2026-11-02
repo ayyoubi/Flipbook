@@ -27,6 +27,10 @@
             color: white; 
         }
         #book { 
+            width: 100vw;
+            height: 85vh;
+            max-width: 950px;
+            max-height: 680px;
             box-shadow: 0 0 25px rgba(0,0,0,0.6); 
             display: none; 
         }
@@ -63,10 +67,14 @@
         pdfjsLib.getDocument(url).promise.then(async pdf => {
             let pageDivs = [];
             
+            // Blank spacer page to fix the initial cover layout gap
+            const blankDiv = document.createElement('div');
+            blankDiv.className = 'page';
+            pageDivs.push(blankDiv);
+
             for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
                 loadingDiv.innerText = `Loading page ${pageNum} of ${pdf.numPages}...`;
                 const page = await pdf.getPage(pageNum);
-                // Optimized scale for crisp text without giant resolution bloat
                 const viewport = page.getViewport({ scale: 1.2 });
 
                 const canvas = document.createElement('canvas');
@@ -87,15 +95,15 @@
 
             const isMobile = window.innerWidth < 768;
 
-            // Adjusted base dimensions to fit nicely inside desktop and mobile viewports automatically
+            // Using "fit" mode so it scales cleanly within container bounds without manual zoom
             const pageFlip = new St.PageFlip(bookContainer, {
-                width: 420,
-                height: 594,
-                size: "stretch",
+                width: 400,
+                height: 560,
+                size: "fit", 
                 minWidth: 250,
-                maxWidth: 800,
+                maxWidth: 600,
                 minHeight: 350,
-                maxHeight: 1100,
+                maxHeight: 800,
                 maxShadowOpacity: 0.4,
                 showCover: true,
                 usePortrait: isMobile,
