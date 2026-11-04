@@ -49,6 +49,33 @@
             object-fit: contain; 
         }
 
+        /* Custom Audio Container Styling */
+        .audio-box {
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px 12px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10;
+        }
+        .audio-box audio {
+            height: 30px;
+            width: 280px;
+        }
+        .audio-label {
+            font-size: 11px;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+
         /* Center Crease Shadow - DESKTOP ONLY */
         @media (min-width: 768px) {
             #book::after {
@@ -100,6 +127,71 @@
                 const div = document.createElement('div');
                 div.className = 'page';
                 div.appendChild(canvas);
+
+                // --- PAGE 5: Injecting the 4 audio clips at the bottom ---
+                if (pageNum === 5) {
+                    const container = document.createElement('div');
+                    container.className = 'audio-box';
+                    
+                    const clips = [
+                        { name: 'Moan', file: 'moan.mp3' },
+                        { name: 'Annoying', file: 'annoying.mp3' },
+                        { name: '5ali', file: '5ali.mp3' },
+                        { name: 'Extra Clip', file: 'gamed.mp3' } // Replace file name if your 5th file is named differently
+                    ];
+
+                    clips.forEach(clip => {
+                        const wrapper = document.createElement('div');
+                        wrapper.style.display = 'flex';
+                        wrapper.style.alignItems = 'center';
+                        wrapper.style.justifyContent = 'space-between';
+                        wrapper.style.gap = '8px';
+
+                        const label = document.createElement('span');
+                        label.className = 'audio-label';
+                        label.innerText = clip.name;
+                        label.style.width = '70px';
+                        label.style.textAlign = 'left';
+
+                        const player = document.createElement('audio');
+                        player.controls = true;
+                        player.src = clip.file;
+
+                        wrapper.appendChild(label);
+                        wrapper.appendChild(player);
+                        container.appendChild(wrapper);
+                    });
+
+                    div.appendChild(container);
+                }
+
+                // --- PAGE 7: Injecting gamed.mp3 between Hadith and Question ---
+                if (pageNum === 7) {
+                    const container = document.createElement('div');
+                    container.className = 'audio-box';
+                    // Positioning it slightly higher up on page 7 to sit between Hadith and Question
+                    container.style.bottom = '45%'; 
+
+                    const wrapper = document.createElement('div');
+                    wrapper.style.display = 'flex';
+                    wrapper.style.flexDirection = 'column';
+                    wrapper.style.gap = '4px';
+
+                    const label = document.createElement('span');
+                    label.className = 'audio-label';
+                    label.innerText = 'Gamed Audio';
+
+                    const player = document.createElement('audio');
+                    player.controls = true;
+                    player.src = 'gamed.mp3';
+
+                    wrapper.appendChild(label);
+                    wrapper.appendChild(player);
+                    container.appendChild(wrapper);
+
+                    div.appendChild(container);
+                }
+
                 pageDivs.push(div);
             }
 
@@ -124,7 +216,6 @@
 
             pageFlip.loadFromHTML(pageDivs);
 
-            // Listen for engine state changes to hide/show the crease during active desktop animations
             pageFlip.on('changeState', (e) => {
                 if (e.data === 'flipping' || e.data === 'user_fold') {
                     bookContainer.classList.add('is-flipping');
