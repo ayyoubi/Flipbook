@@ -49,22 +49,37 @@
             object-fit: contain; 
         }
 
-        /* Compact audio player styling pinned to the left page */
+        /* Sleek, reliable custom audio button styling */
         .audio-container {
             position: absolute;
             display: flex;
             flex-direction: column;
             gap: 4px;
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.96);
             padding: 6px;
             border-radius: 6px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
             z-index: 10;
             pointer-events: auto;
         }
-        .audio-container audio {
-            height: 24px;
-            width: 175px;
+        .audio-btn {
+            background: #2f3136;
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: left;
+            width: 130px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+        .audio-btn:hover {
+            background: #4f545c;
         }
 
         /* Center Crease Shadow - DESKTOP ONLY */
@@ -100,13 +115,11 @@
         const loadingDiv = document.getElementById('loading');
         const bookContainer = document.getElementById('book');
 
-        // Robust base URL builder for GitHub Pages subdirectories
         const basePath = window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
 
         pdfjsLib.getDocument(url).promise.then(async pdf => {
             let pageDivs = [];
             
-            // Standard Left-to-Right English book layout (normal page order 1, 2, 3...)
             for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
                 loadingDiv.innerText = `Loading page ${pageNum} of ${pdf.numPages}...`;
                 const page = await pdf.getPage(pageNum);
@@ -123,56 +136,85 @@
                 div.className = 'page';
                 div.appendChild(canvas);
 
-                // Helper to stop page-flip from hijacking clicks on audio controls
+                // Helper to stop page-flip from hijacking clicks
                 const attachAudioInterceptionFix = (container) => {
                     ['pointerdown', 'mousedown', 'click', 'touchstart', 'touchend'].forEach(evt => {
                         container.addEventListener(evt, (e) => e.stopPropagation());
                     });
                 };
 
-                // --- PAGE 4 (Left page facing Page 5): 4 audio players ---
+                // --- PAGE 4 (Left page): 4 audio players ---
                 if (pageNum === 4) {
                     const box = document.createElement('div');
                     box.className = 'audio-container';
                     box.style.bottom = '15px';
-                    box.style.right = '20px'; // Anchors to the outer left margin of the left page
+                    box.style.right = '20px';
 
-                    const files = ['moan.mp3', 'annoying.mp3', '5ali.mp3', 'gamed.mp3'];
-                    files.forEach(file => {
-                        const player = document.createElement('audio');
-                        player.controls = true;
-                        player.preload = 'auto';
+                    const tracks = [
+                        { label: 'Moan Audio', file: 'moan.mp3' },
+                        { label: 'Annoying Audio', file: 'annoying.mp3' },
+                        { label: '5ali Audio', file: '5ali.mp3' },
+                        { label: 'Gamed Audio', file: 'gamed.mp3' }
+                    ];
+
+                    tracks.forEach(track => {
+                        const audioObj = new Audio(basePath + track.file);
+                        audioObj.preload = 'auto';
+
+                        const btn = document.createElement('button');
+                        btn.className = 'audio-btn';
+                        btn.innerHTML = `<span>▶ ${track.label}</span>`;
                         
-                        const source = document.createElement('source');
-                        source.src = basePath + file;
-                        source.type = 'audio/mpeg';
-                        
-                        player.appendChild(source);
-                        box.appendChild(player);
+                        btn.onclick = () => {
+                            if (audioObj.paused) {
+                                audioObj.play().catch(err => console.error("Playback error:", err));
+                                btn.innerHTML = `<span>⏸ ${track.label}</span>`;
+                            } else {
+                                audioObj.pause();
+                                btn.innerHTML = `<span>▶ ${track.label}</span>`;
+                            }
+                        };
+
+                        audioObj.onended = () => {
+                            btn.innerHTML = `<span>▶ ${track.label}</span>`;
+                        };
+
+                        box.appendChild(btn);
                     });
 
                     attachAudioInterceptionFix(box);
                     div.appendChild(box);
                 }
 
-                // --- PAGE 6 (Left page facing Page 7): gamed.mp3 player ---
+                // --- PAGE 6 (Left page): gamed.mp3 player placed cleanly at the TOP ---
                 if (pageNum === 6) {
                     const box = document.createElement('div');
                     box.className = 'audio-container';
-                    box.style.top = '44%';
-                    box.style.right = '20px'; // Anchors to the left page
+                    box.style.top = '15px'; // Moved safely to the top empty space
+                    box.style.right = '20px';
 
-                    const player = document.createElement('audio');
-                    player.controls = true;
-                    player.preload = 'auto';
-                    
-                    const source = document.createElement('source');
-                    source.src = basePath + 'gamed.mp3';
-                    source.type = 'audio/mpeg';
+                    const audioObj = new Audio(basePath + 'gamed.mp3');
+                    audioObj.preload = 'auto';
 
-                    player.appendChild(source);
-                    box.appendChild(player);
+                    const btn = document.createElement('button');
+                    btn.className = 'audio-btn';
+                    btn.innerHTML = `<span>▶ Play Gamed</span>`;
                     
+                    btn.onclick = () => {
+                        if (audioObj.paused) {
+                            audioObj.play().catch(err => console.error("Playback error:", err));
+                            btn.innerHTML = `<span>⏸ Pause Gamed</span>`;
+                        } else {
+                            audioObj.pause();
+                            btn.innerHTML = `<span>▶ Play Gamed</span>`;
+                        }
+                    };
+
+                    audioObj.onended = () => {
+                        btn.innerHTML = `<span>▶ Play Gamed</span>`;
+                    };
+
+                    box.appendChild(btn);
                     attachAudioInterceptionFix(box);
                     div.appendChild(box);
                 }
