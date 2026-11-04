@@ -49,21 +49,21 @@
             object-fit: contain; 
         }
 
-        /* Ultra-compact, clean audio container for empty spaces */
+        /* Compact audio player styling pinned strictly to the left page */
         .audio-container {
             position: absolute;
             display: flex;
             flex-direction: column;
             gap: 4px;
-            background: rgba(255, 255, 255, 0.92);
-            padding: 6px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 5px;
             border-radius: 6px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.18);
             z-index: 10;
         }
         .audio-container audio {
-            height: 24px;
-            width: 180px;
+            height: 22px;
+            width: 170px;
         }
 
         /* Center Crease Shadow - DESKTOP ONLY */
@@ -118,17 +118,18 @@
                 div.className = 'page';
                 div.appendChild(canvas);
 
-                // --- PAGE 5: Compact audio players stacked in the bottom-left empty margin ---
+                // --- PAGE 5: Pinned securely to the bottom of the LEFT page ---
                 if (pageNum === 5) {
                     const box = document.createElement('div');
                     box.className = 'audio-container';
                     box.style.bottom = '15px';
-                    box.style.left = '25px';
+                    box.style.right = '25px'; // Using 'right' relative to the page div anchors it to the left page in RTL spreads
 
                     const files = ['moan.mp3', 'annoying.mp3', '5ali.mp3', 'gamed.mp3'];
                     files.forEach(file => {
                         const player = document.createElement('audio');
                         player.controls = true;
+                        player.preload = 'auto'; // Forces browser to load the audio buffer immediately
                         
                         const source = document.createElement('source');
                         source.src = file;
@@ -141,15 +142,16 @@
                     div.appendChild(box);
                 }
 
-                // --- PAGE 7: Compact gamed.mp3 player placed in the empty gap between Hadith and Question ---
+                // --- PAGE 7: Pinned securely to the LEFT page gap ---
                 if (pageNum === 7) {
                     const box = document.createElement('div');
                     box.className = 'audio-container';
-                    box.style.top = '44% ';
-                    box.style.left = '25px';
+                    box.style.top = '44%';
+                    box.style.right = '25px'; // Anchors it precisely to the left page
 
                     const player = document.createElement('audio');
                     player.controls = true;
+                    player.preload = 'auto';
                     
                     const source = document.createElement('source');
                     source.src = 'gamed.mp3';
