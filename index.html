@@ -35,6 +35,8 @@
             font-size: 1.2rem; 
             text-align: center; 
             padding: 20px; 
+            max-width: 80%;
+            word-break: break-word;
         }
         .page { 
             background-color: white; 
@@ -171,7 +173,6 @@
     </div>
 
     <script>
-        // Toggle three-dot menu dropdown
         const menuBtn = document.getElementById('menu-btn');
         const menuDropdown = document.getElementById('menu-dropdown');
 
@@ -186,58 +187,164 @@
             }
         };
 
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
+        if (typeof pdfjsLib === 'undefined') {
+            document.getElementById('loading').innerText = "Error: pdf.min.js failed to load. Check file name.";
+        } else {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
 
-        const url = 'usul_elfiqh.pdf';
-        const loadingDiv = document.getElementById('loading');
-        const bookContainer = document.getElementById('book');
+            const url = 'usul_elfiqh.pdf';
+            const loadingDiv = document.getElementById('loading');
+            const bookContainer = document.getElementById('book');
 
-        // Path calculation for GitHub Pages root/subfolder deployment
-        const basePath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+            const basePath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
 
-        pdfjsLib.getDocument(url).promise.then(async pdf => {
-            let pageDivs = [];
-            
-            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                loadingDiv.innerText = `Loading page ${pageNum} of ${pdf.numPages}...`;
-                const page = await pdf.getPage(pageNum);
-                const viewport = page.getViewport({ scale: 1.1 });
+            pdfjsLib.getDocument(url).promise.then(async pdf => {
+                let pageDivs = [];
+                
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    loadingDiv.innerText = `Loading page ${pageNum} of ${pdf.numPages}...`;
+                    const page = await pdf.getPage(pageNum);
+                    const viewport = page.getViewport({ scale: 1.1 });
 
-                const canvas = document.createElement('canvas');
-                canvas.height = viewport.height;
-                canvas.width = viewport.width;
-                const context = canvas.getContext('2d');
+                    const canvas = document.createElement('canvas');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    const context = canvas.getContext('2d');
 
-                await page.render({ canvasContext: context, viewport: viewport }).promise;
+                    await page.render({ canvasContext: context, viewport: viewport }).promise;
 
-                const div = document.createElement('div');
-                div.className = 'page';
-                div.appendChild(canvas);
+                    const div = document.createElement('div');
+                    div.className = 'page';
+                    div.appendChild(canvas);
 
-                // Prevents pageFlip library from stealing button clicks
-                const attachAudioInterceptionFix = (container) => {
-                    ['pointerdown', 'mousedown', 'click', 'touchstart', 'touchend'].forEach(evt => {
-                        container.addEventListener(evt, (e) => e.stopPropagation());
-                    });
-                };
+                    const attachAudioInterceptionFix = (container) => {
+                        ['pointerdown', 'mousedown', 'click', 'touchstart', 'touchend'].forEach(evt => {
+                            container.addEventListener(evt, (e) => e.stopPropagation());
+                        });
+                    };
 
-                // --- PAGE 4 (Left page in LTR): 4 audio buttons at the bottom ---
-                if (pageNum === 4) {
-                    const box = document.createElement('div');
-                    box.className = 'audio-container';
-                    box.style.bottom = '15px';
-                    box.style.left = '20px';
+                    // --- PAGE 4: 4 audio buttons ---
+                    if (pageNum === 4) {
+                        const box = document.createElement('div');
+                        box.className = 'audio-container';
+                        box.style.bottom = '15px';
+                        box.style.left = '20px';
 
-                    const tracks = [
-                        { label: 'Moan Audio', file: 'moan.mp3' },
-                        { label: 'Annoying Audio', file: 'annoying.mp3' },
-                        { label: '5ali Audio', file: '5ali.mp3' },
-                        { label: 'Gamed Audio', file: 'gamed.mp3' }
-                    ];
+                        const tracks = [
+                            { label: 'Moan Audio', file: 'moan.mp3' },
+                            { label: 'Annoying Audio', file: 'annoying.mp3' },
+                            { label: '5ali Audio', file: '5ali.mp3' },
+                            { label: 'Gamed Audio', file: 'gamed.mp3' }
+                        ];
 
-                    tracks.forEach(track => {
-                        const audioObj = new Audio(basePath + track.file);
+                        tracks.forEach(track => {
+                            const audioObj = new Audio(basePath + track.file);
+                            audioObj.preload = 'auto';
+
+                            const btn = document.createElement('button');
+                            btn.className = 'audio-btn';
+                            btn.innerHTML = `<span>▶ ${track.label}</span>`;
+                            
+                            btn.onclick = () => {
+                                if (audioObj.paused) {
+                                    audioObj.load();
+                                    audioObj.play().then(() => {
+                                        btn.innerHTML = `<span>⏸ ${track.label}</span>`;
+                                    }).catch(err => {
+                                        console.error("Audio playback error:", err);
+                                    });
+                                } else {
+                                    audioObj.pause();
+                                    btn.innerHTML = `<span>▶ ${track.label}</span>`;
+                                }
+                            };
+
+                            audioObj.onended = () => {
+                                btn.innerHTML = `<span>▶ ${track.label}</span>`;
+                            };
+
+                            box.appendChild(btn);
+                        });
+
+                        attachAudioInterceptionFix(box);
+                        div.appendChild(box);
+                    }
+
+                    // --- PAGE 6: gamed.mp3 ---
+                    if (pageNum === 6) {
+                        const box = document.createElement('div');
+                        box.className = 'audio-container';
+                        box.style.top = '44%'; 
+                        box.style.left = '20px';
+
+                        const audioObj = new Audio(basePath + 'gamed.mp3');
                         audioObj.preload = 'auto';
 
                         const btn = document.createElement('button');
-                        btn.className = 'audio-
+                        btn.className = 'audio-btn';
+                        btn.innerHTML = `<span>▶ Play Gamed</span>`;
+                        
+                        btn.onclick = () => {
+                            if (audioObj.paused) {
+                                audioObj.load();
+                                audioObj.play().then(() => {
+                                    btn.innerHTML = `<span>⏸ Pause Gamed</span>`;
+                                }).catch(err => {
+                                    console.error("Audio playback error:", err);
+                                });
+                            } else {
+                                audioObj.pause();
+                                btn.innerHTML = `<span>▶ Play Gamed</span>`;
+                            }
+                        };
+
+                        audioObj.onended = () => {
+                            btn.innerHTML = `<span>▶ Play Gamed</span>`;
+                        };
+
+                        box.appendChild(btn);
+                        attachAudioInterceptionFix(box);
+                        div.appendChild(box);
+                    }
+
+                    pageDivs.push(div);
+                }
+
+                loadingDiv.style.display = 'none';
+                bookContainer.style.display = 'block';
+
+                const isMobile = window.innerWidth < 768;
+
+                const pageFlip = new St.PageFlip(bookContainer, {
+                    width: 420,
+                    height: 594,
+                    size: "fixed",
+                    minWidth: 250,
+                    maxWidth: 700,
+                    minHeight: 350,
+                    maxHeight: 900,
+                    maxShadowOpacity: 0.4,
+                    showCover: true,
+                    usePortrait: isMobile,
+                    mobileScrollSupport: true
+                });
+
+                pageFlip.loadFromHTML(pageDivs);
+
+                pageFlip.on('changeState', (e) => {
+                    if (e.data === 'flipping' || e.data === 'user_fold') {
+                        bookContainer.classList.add('is-flipping');
+                    } else if (e.data === 'read') {
+                        bookContainer.classList.remove('is-flipping');
+                    }
+                });
+
+            }).catch(err => {
+                loadingDiv.style.color = '#ff6b6b';
+                loadingDiv.innerText = "Error loading book: " + err.message;
+                console.error(err);
+            });
+        }
+    </script>
+</body>
+</html>
