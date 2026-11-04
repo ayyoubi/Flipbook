@@ -190,11 +190,11 @@
                     div.appendChild(box);
                 }
 
-                // --- PAGE 7 (Right page in LTR): Pinned to the TOP of the page ---
-                if (pageNum === 7) {
+                // --- PAGE 6 (Left page in LTR): gamed.mp3 placed in the middle gap above the question ---
+                if (pageNum === 6) {
                     const box = document.createElement('div');
                     box.className = 'audio-container';
-                    box.style.top = '15px'; // Positioned at top margin
+                    box.style.top = '44%'; // Positioned precisely in the middle empty gap above the question block
                     box.style.left = '20px';
 
                     const audioObj = new Audio(basePath + 'gamed.mp3');
