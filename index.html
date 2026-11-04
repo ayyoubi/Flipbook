@@ -81,6 +81,60 @@
             background: #4f545c;
         }
 
+        /* Minimal Three-Dot Menu Styling */
+        #menu-container {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            z-index: 2000;
+        }
+        #menu-btn {
+            background: rgba(47, 49, 54, 0.85);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            transition: background 0.2s;
+        }
+        #menu-btn:hover {
+            background: rgba(79, 84, 92, 0.95);
+        }
+        #menu-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 38px;
+            background: #2f3136;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            overflow: hidden;
+            width: 150px;
+        }
+        #menu-dropdown.show {
+            display: block;
+        }
+        #menu-dropdown a {
+            display: block;
+            padding: 10px 14px;
+            color: #dcddde;
+            text-decoration: none;
+            font-size: 12px;
+            transition: background 0.2s, color 0.2s;
+        }
+        #menu-dropdown a:hover {
+            background: #4f545c;
+            color: #fff;
+        }
+
         /* Center Crease Shadow - DESKTOP ONLY */
         @media (min-width: 768px) {
             #book::after {
@@ -107,7 +161,31 @@
     <div id="loading">Preparing your book...</div>
     <div id="book"></div>
 
+    <!-- Minimal Three-Dot Menu -->
+    <div id="menu-container">
+        <button id="menu-btn" title="Options">⋮</button>
+        <div id="menu-dropdown">
+            <a href="terms.html" target="_blank">Terms of Service</a>
+            <a href="privacy.html" target="_blank">Privacy Policy</a>
+        </div>
+    </div>
+
     <script>
+        // Toggle three-dot menu dropdown
+        const menuBtn = document.getElementById('menu-btn');
+        const menuDropdown = document.getElementById('menu-dropdown');
+
+        menuBtn.onclick = (e) => {
+            e.stopPropagation();
+            menuDropdown.classList.toggle('show');
+        };
+
+        window.onclick = () => {
+            if (menuDropdown.classList.contains('show')) {
+                menuDropdown.classList.remove('show');
+            }
+        };
+
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
 
         const url = 'usul_elfiqh.pdf';
@@ -162,108 +240,4 @@
                         audioObj.preload = 'auto';
 
                         const btn = document.createElement('button');
-                        btn.className = 'audio-btn';
-                        btn.innerHTML = `<span>▶ ${track.label}</span>`;
-                        
-                        btn.onclick = () => {
-                            if (audioObj.paused) {
-                                audioObj.load();
-                                audioObj.play().then(() => {
-                                    btn.innerHTML = `<span>⏸ ${track.label}</span>`;
-                                }).catch(err => {
-                                    console.error("Audio playback error:", err);
-                                });
-                            } else {
-                                audioObj.pause();
-                                btn.innerHTML = `<span>▶ ${track.label}</span>`;
-                            }
-                        };
-
-                        audioObj.onended = () => {
-                            btn.innerHTML = `<span>▶ ${track.label}</span>`;
-                        };
-
-                        box.appendChild(btn);
-                    });
-
-                    attachAudioInterceptionFix(box);
-                    div.appendChild(box);
-                }
-
-                // --- PAGE 6 (Left page in LTR): gamed.mp3 placed in the middle gap above the question ---
-                if (pageNum === 6) {
-                    const box = document.createElement('div');
-                    box.className = 'audio-container';
-                    box.style.top = '44%'; // Positioned precisely in the middle empty gap above the question block
-                    box.style.left = '20px';
-
-                    const audioObj = new Audio(basePath + 'gamed.mp3');
-                    audioObj.preload = 'auto';
-
-                    const btn = document.createElement('button');
-                    btn.className = 'audio-btn';
-                    btn.innerHTML = `<span>▶ Play Gamed</span>`;
-                    
-                    btn.onclick = () => {
-                        if (audioObj.paused) {
-                            audioObj.load();
-                            audioObj.play().then(() => {
-                                btn.innerHTML = `<span>⏸ Pause Gamed</span>`;
-                            }).catch(err => {
-                                console.error("Audio playback error:", err);
-                            });
-                        } else {
-                            audioObj.pause();
-                            btn.innerHTML = `<span>▶ Play Gamed</span>`;
-                        }
-                    };
-
-                    audioObj.onended = () => {
-                        btn.innerHTML = `<span>▶ Play Gamed</span>`;
-                    };
-
-                    box.appendChild(btn);
-                    attachAudioInterceptionFix(box);
-                    div.appendChild(box);
-                }
-
-                pageDivs.push(div);
-            }
-
-            loadingDiv.style.display = 'none';
-            bookContainer.style.display = 'block';
-
-            const isMobile = window.innerWidth < 768;
-
-            const pageFlip = new St.PageFlip(bookContainer, {
-                width: 420,
-                height: 594,
-                size: "fixed",
-                minWidth: 250,
-                maxWidth: 700,
-                minHeight: 350,
-                maxHeight: 900,
-                maxShadowOpacity: 0.4,
-                showCover: true,
-                usePortrait: isMobile,
-                mobileScrollSupport: true
-            });
-
-            pageFlip.loadFromHTML(pageDivs);
-
-            pageFlip.on('changeState', (e) => {
-                if (e.data === 'flipping' || e.data === 'user_fold') {
-                    bookContainer.classList.add('is-flipping');
-                } else if (e.data === 'read') {
-                    bookContainer.classList.remove('is-flipping');
-                }
-            });
-
-        }).catch(err => {
-            loadingDiv.style.color = '#ff6b6b';
-            loadingDiv.innerText = "Error loading book: " + err.message;
-            console.error(err);
-        });
-    </script>
-</body>
-</html>
+                        btn.className = 'audio-
