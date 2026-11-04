@@ -49,12 +49,12 @@
             object-fit: contain; 
         }
 
-        /* Sleek, reliable custom audio button styling */
+        /* Sleek custom audio button container */
         .audio-container {
             position: absolute;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 5px;
             background: rgba(255, 255, 255, 0.96);
             padding: 6px;
             border-radius: 6px;
@@ -66,13 +66,12 @@
             background: #2f3136;
             color: white;
             border: none;
-            padding: 4px 10px;
+            padding: 5px 12px;
             font-size: 11px;
             font-weight: bold;
             border-radius: 4px;
             cursor: pointer;
-            text-align: left;
-            width: 130px;
+            width: 135px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -115,7 +114,8 @@
         const loadingDiv = document.getElementById('loading');
         const bookContainer = document.getElementById('book');
 
-        const basePath = window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+        // Path calculation for GitHub Pages root/subfolder deployment
+        const basePath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
 
         pdfjsLib.getDocument(url).promise.then(async pdf => {
             let pageDivs = [];
@@ -136,19 +136,19 @@
                 div.className = 'page';
                 div.appendChild(canvas);
 
-                // Helper to stop page-flip from hijacking clicks
+                // Prevents pageFlip library from stealing button clicks
                 const attachAudioInterceptionFix = (container) => {
                     ['pointerdown', 'mousedown', 'click', 'touchstart', 'touchend'].forEach(evt => {
                         container.addEventListener(evt, (e) => e.stopPropagation());
                     });
                 };
 
-                // --- PAGE 4 (Left page): 4 audio players ---
-                if (pageNum === 4) {
+                // --- PAGE 5: 4 audio buttons at the bottom ---
+                if (pageNum === 5) {
                     const box = document.createElement('div');
                     box.className = 'audio-container';
                     box.style.bottom = '15px';
-                    box.style.right = '20px';
+                    box.style.left = '20px';
 
                     const tracks = [
                         { label: 'Moan Audio', file: 'moan.mp3' },
@@ -167,8 +167,12 @@
                         
                         btn.onclick = () => {
                             if (audioObj.paused) {
-                                audioObj.play().catch(err => console.error("Playback error:", err));
-                                btn.innerHTML = `<span>⏸ ${track.label}</span>`;
+                                audioObj.load();
+                                audioObj.play().then(() => {
+                                    btn.innerHTML = `<span>⏸ ${track.label}</span>`;
+                                }).catch(err => {
+                                    console.error("Audio playback error:", err);
+                                });
                             } else {
                                 audioObj.pause();
                                 btn.innerHTML = `<span>▶ ${track.label}</span>`;
@@ -186,12 +190,12 @@
                     div.appendChild(box);
                 }
 
-                // --- PAGE 6 (Left page): gamed.mp3 player placed cleanly at the TOP ---
-                if (pageNum === 6) {
+                // --- PAGE 7: Pinned to the TOP of the page ---
+                if (pageNum === 7) {
                     const box = document.createElement('div');
                     box.className = 'audio-container';
-                    box.style.top = '15px'; // Moved safely to the top empty space
-                    box.style.right = '20px';
+                    box.style.top = '15px'; // Positioned at top margin
+                    box.style.left = '20px';
 
                     const audioObj = new Audio(basePath + 'gamed.mp3');
                     audioObj.preload = 'auto';
@@ -202,8 +206,12 @@
                     
                     btn.onclick = () => {
                         if (audioObj.paused) {
-                            audioObj.play().catch(err => console.error("Playback error:", err));
-                            btn.innerHTML = `<span>⏸ Pause Gamed</span>`;
+                            audioObj.load();
+                            audioObj.play().then(() => {
+                                btn.innerHTML = `<span>⏸ Pause Gamed</span>`;
+                            }).catch(err => {
+                                console.error("Audio playback error:", err);
+                            });
                         } else {
                             audioObj.pause();
                             btn.innerHTML = `<span>▶ Play Gamed</span>`;
